@@ -37,6 +37,10 @@ pip-delete-this-directory.txt
 dist/
 build/
 
+# --- Keep web folder tracked ---
+!web/
+!web/**
+
 # --- IDEs / Editors ---
 .vscode/
 .idea/

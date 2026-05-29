@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIBE PULSE</title>
+<style>
+:root {
+    --bg: #0a0b10;
+    --bg2: #111120;
+    --bg3: #181828;
+    --card: #12131f;
+    --borde: rgba(139,43,226,0.15);
+    --borde2: rgba(139,43,226,0.25);
+    --morado: #c84dfa;
+    --morado-l: #d670ff;
+    --morado-d: rgba(200,77,250,0.2);
+    --cyan: #00d4ff;
+    --verde: #34d399;
+    --rosa: #ff4d8d;
+    --blanco: #ffffff;
+    --t1: #e2e8f0;
+    --t2: #a0a0b8;
+    --t3: #6a6a7e;
+    --t4: #4a4a5e;
+    --grad: linear-gradient(90deg, #c84dfa 0%, #e040fb 50%, #00d4ff 100%);
+    --fuente: 'Segoe UI Variable','Segoe UI',system-ui,-apple-system,sans-serif;
+    --r: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--t1); font-family:var(--fuente); font-size:14px; }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(200,77,250,0.25); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(200,77,250,0.4); }
+::selection { background:rgba(200,77,250,0.3); color:white; }
+#app { display:flex; flex-direction:column; height:100vh; }
+
+#navbar {
+    display:flex; align-items:center; padding:0 24px;
+    height:52px; min-height:52px;
+    background:var(--bg); border-bottom:1px solid var(--borde);
+    z-index:100; user-select:none;
+}
+.marca {
+    font-size:17px; font-weight:800; color:var(--morado);
+    font-style:italic; letter-spacing:2px; margin-right:auto;
+}
+.nav-tabs { display:flex; gap:4px; }
+.nav-tab {
+    background:none; border:none; color:var(--t3); cursor:pointer;
+    font-family:var(--fuente); font-size:13px; font-weight:600;
+    letter-spacing:1.5px; padding:14px 20px; border-bottom:2px solid transparent;
+    transition:all 0.2s;
+}
+.nav-tab:hover { color:var(--t2); }
+.nav-tab.activo { color:var(--blanco); border-bottom-color:var(--morado); }
+.nav-esp { margin-left:auto; }
+
+.pag { display:none; flex:1; overflow-y:auto; overflow-x:hidden; }
+.pag.activo { display:flex; flex-direction:column; }
+
+#pag-bib { padding:32px 40px 20px; gap:0; }
+.bib-tit-row { display:flex; align-items:baseline; gap:4px; margin-bottom:4px; }
+.bib-tit { font-size:48px; font-weight:800; color:var(--blanco); letter-spacing:-1px; }
+.bib-punto { font-size:48px; font-weight:800; color:var(--morado); }
+.bib-sub {
+    font-size:10px; color:var(--t3); text-transform:uppercase;
+    letter-spacing:3px; font-weight:600; margin-bottom:24px;
+}
+
+.stats-row { display:flex; gap:16px; margin-bottom:24px; }
+.stat-card {
+    flex:1; background:var(--card); border:1px solid var(--borde);
+    border-radius:14px; padding:20px 22px 16px; transition:all 0.25s;
+    display:flex; flex-direction:column; gap:4px;
+}
+.stat-card:hover { border-color:var(--borde2); background:#161625; }
+.stat-top { display:flex; justify-content:space-between; align-items:center; }
+.stat-ico { font-size:20px; }
+.stat-tag { font-size:9px; font-weight:700; letter-spacing:1.2px; }
+.stat-val { font-size:38px; font-weight:800; color:var(--blanco); line-height:1.1; margin:6px 0 2px; }
+.stat-val span { font-size:16px; font-weight:400; color:var(--t2); }
+.stat-label { font-size:9px; color:var(--t3); text-transform:uppercase; letter-spacing:2.5px; font-weight:700; }
+.stat-bar { height:3px; border-radius:2px; background:var(--grad); margin-top:10px; }
+
+.seccion {
+    background:rgba(14,14,26,0.95); border:1px solid var(--borde);
+    border-radius:16px; padding:22px 26px; flex:1; display:flex;
+    flex-direction:column; overflow:hidden; min-height:0;
+}
+.sec-head { display:flex; align-items:center; margin-bottom:16px; gap:12px; }
+.sec-tit { font-size:18px; font-weight:700; color:var(--blanco); flex-shrink:0; }
+.sec-esp { flex:1; }
+.buscar {
+    background:rgba(20,20,36,0.8); border:1px solid var(--borde);
+    border-radius:8px; padding:8px 14px; color:var(--t1); font-size:13px;
+    font-family:var(--fuente); outline:none; width:280px; transition:border-color 0.2s;
+}
+.buscar:focus { border-color:rgba(200,77,250,0.4); }
+.buscar::placeholder { color:var(--t4); }
+.filtros-bib { display:flex; gap:8px; margin-right:12px; }
+.filtro-pill {
+    background:rgba(20,20,36,0.8); border:1px solid var(--borde);
+    border-radius:12px; padding:4px 12px; color:var(--t3); font-size:11px;
+    font-weight:700; cursor:pointer; text-transform:uppercase; transition:all 0.2s;
+}
+.filtro-pill.activo { background:var(--morado); color:white; border-color:var(--morado); }
+
+.tabla-wrap { flex:1; overflow-y:auto; overflow-x:hidden; min-height:0; }
+.tabla-wrap table { width:100%; border-collapse:collapse; }
+.tabla-wrap thead th {
+    text-align:left; padding:10px 10px;
+    font-size:9px; color:var(--t3); text-transform:uppercase;
+    letter-spacing:2px; font-weight:700; border-bottom:1px solid var(--borde);
+    position:sticky; top:0; background:rgba(14,14,26,0.98); z-index:1;
+}
+.tabla-wrap thead th:last-child { text-align:right; }
+.tabla-wrap thead th:first-child { width:50px; text-align:center; }
+.tabla-wrap tbody tr {
+    cursor:pointer; transition:background 0.15s;
+    border-bottom:1px solid rgba(139,43,226,0.05);
+}
+.tabla-wrap tbody tr:hover { background:rgba(200,77,250,0.06); }
+.tabla-wrap tbody tr.tocando { background:rgba(200,77,250,0.12); }
+.tabla-wrap tbody td { padding:8px 10px; vertical-align:middle; }
+.tabla-wrap tbody td:first-child { text-align:center; color:var(--t4); font-weight:600; font-size:13px; }
+.tabla-wrap tbody tr:first-child td:first-child { color:var(--morado); }
+.tabla-wrap tbody td:last-child { text-align:right; color:var(--t3); font-size:13px; }
+
+.celda-canc { display:flex; align-items:center; gap:12px; }
+.mini-art {
+    width:40px; height:40px; border-radius:6px; flex-shrink:0;
+    background:linear-gradient(135deg, #2a1a40, #1a1030); overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+}
+.mini-art img { width:100%; height:100%; object-fit:cover; }
+.mini-art .ico-nota { font-size:16px; color:var(--morado); opacity:0.5; }
+.info-canc .nom { font-size:14px; font-weight:600; color:var(--blanco); }
+.info-canc .sub { font-size:11px; color:var(--t3); margin-top:1px; }
+
+.bib-pie { display:flex; align-items:center; gap:12px; margin-top:14px; padding-top:10px; }
+.bib-pie-txt { font-size:12px; color:var(--t4); font-style:italic; flex:1; }
+.btn {
+    border:none; border-radius:10px; cursor:pointer;
+    font-family:var(--fuente); font-weight:700; font-size:12px;
+    letter-spacing:1.5px; padding:11px 26px; transition:all 0.2s;
+}
+.btn-pri { background:var(--morado); color:white; }
+.btn-pri:hover { background:var(--morado-l); }
+.btn-sec { background:rgba(30,30,50,0.8); color:white; border:1px solid var(--borde2); }
+.btn-sec:hover { background:rgba(40,40,65,0.9); }
+.btn-fan { background:none; color:var(--t3); border:none; padding:8px 14px; }
+.btn-fan:hover { color:var(--morado); }
+
+#pag-repro { padding:30px 50px; align-items:flex-start; position:relative; }
+.repro-estado { margin-bottom:0; }
+.repro-st { font-size:10px; color:var(--verde); text-transform:uppercase; letter-spacing:2.5px; font-weight:700; }
+.repro-st.pausado { color:#fbbf24; }
+.repro-st-txt { font-size:26px; font-weight:800; color:var(--blanco); font-style:italic; letter-spacing:-0.5px; }
+
+.vinilo-wrap {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    position:relative; width:100%; min-height:300px;
+}
+.vinilo-brillo {
+    position:absolute; width:440px; height:440px; border-radius:50%;
+    background:radial-gradient(circle, rgba(200,77,250,0.1) 0%, transparent 70%);
+    filter:blur(40px); pointer-events:none;
+}
+.vinilo {
+    width:380px; height:380px; border-radius:50%;
+    position:relative;
+    animation:girar 3s linear infinite;
+    animation-play-state:paused;
+    box-shadow:0 0 80px rgba(200,77,250,0.07), 0 0 2px rgba(200,77,250,0.25),
+               inset 0 0 60px rgba(0,0,0,0.5);
+}
+.vinilo.girando { animation-play-state:running; }
+.vinilo-sup {
+    position:absolute; inset:0; border-radius:50%;
+    background:
+        repeating-radial-gradient(circle at center,
+            transparent 0px, transparent 3px,
+            rgba(255,255,255,0.03) 3.5px, transparent 4px),
+        linear-gradient(135deg,
+            rgba(255,255,255,0.05) 0%, transparent 30%,
+            transparent 70%, rgba(255,255,255,0.02) 100%),
+        radial-gradient(circle, #15152a 33%, #080810 34%);
+}
+.vinilo-centro {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:38%; height:38%; border-radius:50%;
+    overflow:hidden; border:2px solid rgba(200,77,250,0.3);
+    box-shadow:0 0 12px rgba(200,77,250,0.12);
+    z-index:2;
+}
+.vinilo-centro img {
+    width:100%; height:100%; object-fit:cover; display:none;
+}
+.vinilo-centro img.visible { display:block; }
+.vinilo-def {
+    width:100%; height:100%;
+    background:radial-gradient(circle, #6B21A8, #4C1D95 50%, #2E1065);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--morado-l); font-size:15px; font-weight:800;
+    font-style:italic; letter-spacing:4px;
+}
+.vinilo-centro img.visible ~ .vinilo-def { display:none; }
+.vinilo-eje {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:14px; height:14px; border-radius:50%;
+    background:var(--bg); border:1.5px solid rgba(200,77,250,0.45);
+    z-index:3;
+}
+.vinilo-eje::after {
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:5px; height:5px; border-radius:50%;
+    background:rgba(200,77,250,0.35);
+}
+.repro-info { margin-top:8px; }
+.repro-nom {
+    font-size:46px; font-weight:900; color:var(--blanco);
+    letter-spacing:-2px; text-transform:uppercase; line-height:1.05;
+}
+.repro-art {
+    font-size:15px; font-weight:700; color:var(--morado);
+    text-transform:uppercase; letter-spacing:2px; margin-top:4px;
+}
+.repro-sig { font-size:11px; color:var(--t4); font-style:italic; margin-top:8px; }
+@keyframes girar { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+#pag-listas { flex-direction:row !important; }
+.pl-lateral {
+    width:220px; min-width:220px; padding:24px 20px;
+    border-right:1px solid var(--borde);
+    display:flex; flex-direction:column; gap:8px;
+}
+.pl-pre { font-size:9px; color:var(--t4); text-transform:uppercase; letter-spacing:2.5px; font-weight:700; }
+.pl-tit { font-size:22px; font-weight:800; color:var(--blanco); margin-bottom:8px; }
+.pl-lista { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px; }
+.pl-elem {
+    padding:10px 14px; border-radius:8px; cursor:pointer;
+    color:var(--t3); font-size:14px; display:flex; align-items:center;
+    gap:10px; transition:all 0.15s; user-select:none;
+}
+.pl-elem:hover { background:rgba(200,77,250,0.06); color:var(--t2); }
+.pl-elem.activo { background:rgba(200,77,250,0.15); color:var(--morado); font-weight:700; }
+.pl-elem-ico { font-size:16px; flex-shrink:0; }
+.pl-nuevo {
+    background:none; border:none; color:var(--t4); cursor:pointer;
+    font-family:var(--fuente); font-size:14px; padding:10px 14px;
+    text-align:left; transition:color 0.2s;
+}
+.pl-nuevo:hover { color:var(--morado); }
+.pl-cont { flex:1; padding:24px 28px 20px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
+.pl-hero {
+    min-height:210px; border-radius:16px; overflow:hidden;
+    position:relative; display:flex; flex-direction:column;
+    justify-content:flex-end; padding:28px 32px;
+    background:linear-gradient(135deg, rgba(120,20,180,0.65), rgba(200,77,250,0.35) 50%, rgba(0,212,255,0.28));
+}
+.pl-hero-bg {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; opacity:0.55; z-index:0;
+}
+.pl-hero-over {
+    position:absolute; inset:0; z-index:1;
+    background:linear-gradient(to top, rgba(10,11,16,0.92) 0%, rgba(10,11,16,0.4) 45%, transparent 100%);
+}
+.pl-hero-cont { position:relative; z-index:2; }
+.hero-tag {
+    font-size:9px; color:var(--verde); text-transform:uppercase;
+    letter-spacing:2.5px; font-weight:700; margin-bottom:6px;
+}
+.hero-nom {
+    font-size:56px; font-weight:900; color:var(--blanco);
+    text-transform:uppercase; letter-spacing:-2px; line-height:1;
+    margin-bottom:8px;
+}
+.hero-desc { font-size:13px; color:var(--t2); max-width:440px; line-height:1.5; margin-bottom:16px; }
+.hero-btns { display:flex; gap:12px; flex-wrap:wrap; }
+.pl-tabla { flex:1; overflow-y:auto; min-height:0; }
+.pl-tabla table { width:100%; border-collapse:collapse; }
+.pl-tabla thead th {
+    text-align:left; padding:10px 10px; font-size:9px; color:var(--t3);
+    text-transform:uppercase; letter-spacing:2px; font-weight:700;
+    border-bottom:1px solid var(--borde); position:sticky; top:0;
+    background:var(--bg); z-index:1;
+}
+.pl-tabla thead th:last-child { text-align:right; }
+.pl-tabla thead th:first-child { width:50px; text-align:center; }
+.pl-tabla tbody tr {
+    cursor:pointer; transition:background 0.15s;
+    border-bottom:1px solid rgba(139,43,226,0.05);
+}
+.pl-tabla tbody tr:hover { background:rgba(200,77,250,0.06); }
+.pl-tabla tbody tr.tocando { background:rgba(200,77,250,0.12); }
+.pl-tabla tbody td { padding:10px 10px; vertical-align:middle; }
+.pl-tabla tbody td:first-child { text-align:center; color:var(--morado); font-weight:600; }
+.pl-tabla tbody td:last-child { text-align:right; color:var(--morado); font-size:13px; }
+
+#barra {
+    background:#08080e; border-top:1px solid var(--borde);
+    display:flex; flex-direction:column; user-select:none; z-index:200;
+}
+.seek-row { padding:0 20px; height:18px; display:flex; align-items:center; }
+.seek-wrap {
+    flex:1; position:relative; height:18px; display:flex;
+    align-items:center; cursor:pointer;
+}
+.seek-pista {
+    width:100%; height:3px; border-radius:2px;
+    background:rgba(255,255,255,0.08); position:relative;
+}
+.seek-lleno {
+    height:100%; border-radius:2px; width:0%;
+    background:var(--grad); transition:width 0.1s linear;
+}
+.seek-punto {
+    width:10px; height:10px; border-radius:50%; background:var(--morado);
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    left:0%; opacity:0; transition:opacity 0.15s;
+}
+.seek-wrap:hover .seek-punto { opacity:1; }
+.barra-main {
+    display:flex; align-items:center; padding:6px 20px 10px;
+    gap:0; min-height:60px;
+}
+.barra-izq { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+.barra-art {
+    width:46px; height:46px; border-radius:7px; flex-shrink:0;
+    background:linear-gradient(135deg,#2a1a40,#1a1030);
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+    border:1px solid rgba(200,77,250,0.2);
+}
+.barra-art img { width:100%; height:100%; object-fit:cover; display:none; }
+.barra-art img.visible { display:block; }
+.barra-art .ico-art { font-size:18px; color:var(--morado); opacity:0.4; }
+.barra-art img.visible ~ .ico-art { display:none; }
+.barra-txt { min-width:0; }
+.barra-nom { font-size:13px; font-weight:700; color:var(--blanco); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.barra-artista { font-size:10px; color:var(--morado); font-weight:600; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.barra-fav {
+    background:none; border:none; cursor:pointer; padding:4px;
+    color:var(--t4); font-size:18px; transition:color 0.2s; flex-shrink:0;
+}
+.barra-fav:hover { color:var(--rosa); }
+.barra-fav.fav { color:var(--rosa); }
+.barra-centro { display:flex; flex-direction:column; align-items:center; flex:2; gap:4px; }
+.controles { display:flex; align-items:center; gap:18px; }
+.ctrl {
+    background:none; border:none; cursor:pointer;
+    color:var(--t3); width:34px; height:34px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:50%; transition:all 0.15s;
+}
+.ctrl:hover { color:var(--blanco); }
+.ctrl.activo { color:var(--morado); }
+.ctrl svg { width:18px; height:18px; }
+.btn-play {
+    background:var(--morado); border:none; cursor:pointer;
+    width:46px; height:46px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.15s; flex-shrink:0;
+}
+.btn-play:hover { background:var(--morado-l); }
+.btn-play svg { width:20px; height:20px; fill:white; }
+.tiempo-row { display:flex; align-items:center; gap:8px; width:300px; }
+.tiempo { font-size:11px; color:var(--t4); font-weight:500; min-width:35px; }
+.tiempo:last-child { text-align:right; }
+.barra-der { display:flex; align-items:center; gap:10px; flex:1; justify-content:flex-end; }
+.vol-ico {
+    background:none; border:none; color:var(--t3); cursor:pointer;
+    display:flex; align-items:center; transition:color 0.15s;
+}
+.vol-ico:hover { color:var(--blanco); }
+.vol-ico svg { width:18px; height:18px; }
+.vol-wrap { width:100px; position:relative; height:18px; display:flex; align-items:center; cursor:pointer; }
+.vol-pista { width:100%; height:3px; border-radius:2px; background:rgba(255,255,255,0.12); position:relative; }
+.vol-lleno { height:100%; border-radius:2px; background:white; width:70%; }
+.vol-punto {
+    width:10px; height:10px; border-radius:50%; background:white;
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    left:70%; opacity:0; transition:opacity 0.15s;
+}
+.vol-wrap:hover .vol-punto { opacity:1; }
+
+.ctx {
+    position:fixed; background:#14142a; border:1px solid var(--borde2);
+    border-radius:10px; padding:6px; z-index:500; min-width:200px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.5); display:none;
+}
+.ctx.visible { display:block; }
+.ctx-elem {
+    padding:9px 16px; border-radius:7px; cursor:pointer;
+    font-size:13px; color:var(--t1); display:flex; align-items:center; gap:10px;
+    transition:background 0.1s;
+}
+.ctx-elem:hover { background:rgba(200,77,250,0.18); }
+.ctx-sep { height:1px; background:var(--borde); margin:4px 8px; }
+
+.modal-fondo {
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    display:none; align-items:center; justify-content:center; z-index:400;
+}
+.modal-fondo.visible { display:flex; }
+.modal {
+    background:#14142a; border:1px solid var(--borde2);
+    border-radius:16px; padding:28px 32px; min-width:360px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.modal h3 { color:var(--blanco); font-size:18px; margin-bottom:16px; }
+.modal input[type="text"] {
+    width:100%; background:rgba(20,20,36,0.8); border:1px solid var(--borde);
+    border-radius:8px; padding:10px 14px; color:var(--t1);
+    font-family:var(--fuente); font-size:14px; outline:none; margin-bottom:16px;
+}
+.modal input[type="text"]:focus { border-color:rgba(200,77,250,0.4); }
+.modal-btns { display:flex; gap:10px; justify-content:flex-end; }
+
+.aviso {
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--morado); color:white; padding:10px 24px;
+    border-radius:8px; font-size:13px; font-weight:600;
+    z-index:600; opacity:0; transition:opacity 0.3s; pointer-events:none;
+}
+.aviso.visible { opacity:1; }
+
+.confirmar-fondo {
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    display:none; align-items:center; justify-content:center; z-index:450;
+}
+.confirmar-fondo.visible { display:flex; }
+.confirmar-caja {
+    background:#14142a; border:1px solid var(--borde2);
+    border-radius:16px; padding:28px 32px; min-width:360px; max-width:440px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5); text-align:center;
+}
+.confirmar-caja h3 { color:var(--blanco); font-size:16px; margin-bottom:20px; line-height:1.4; }
+.confirmar-btns { display:flex; gap:10px; justify-content:center; }
+.ctrl.rep-activo { color:var(--morado) !important; }
+.ctrl.rep-activo svg { stroke:var(--morado); }
+.carpetas-modal { max-height:300px; overflow-y:auto; margin-bottom:16px; }
+.carpeta-item {
+    display:flex; align-items:center; gap:10px;
+    padding:8px 12px; border-radius:8px; font-size:13px;
+    color:var(--t2); background:rgba(20,20,36,0.5);
+    margin-bottom:4px;
+}
+.carpeta-item span { flex:1; word-break:break-all; }
+.carpeta-del {
+    background:none; border:none; color:var(--rosa);
+    cursor:pointer; font-size:16px; padding:2px 6px;
+    border-radius:4px; transition:background 0.15s;
+}
+.carpeta-del:hover { background:rgba(255,77,141,0.15); }
+</style>
+</head>
+<body>
+
+<div id="app">
+    <nav id="navbar">
+        <span class="marca">VIBE PULSE</span>
+        <div class="nav-tabs">
+            <button class="nav-tab activo" data-tab="bib" onclick="irTab('bib')">Biblioteca</button>
+            <button class="nav-tab" data-tab="repro" onclick="irTab('repro')">Reproductor</button>
+            <button class="nav-tab" data-tab="listas" onclick="irTab('listas')">Playlists</button>
+        </div>
+        <span class="nav-esp"></span>
+    </nav>
+
+    <section id="pag-bib" class="pag activo">
+        <div class="bib-tit-row">
+            <span class="bib-tit">Biblioteca</span><span class="bib-punto">.</span>
+        </div>
+        <div class="bib-sub">CURATED MOTION & SONIC LANDSCAPES</div>
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-ico" style="color:var(--morado)">&#9835;</span>
+                    <span class="stat-tag" style="color:var(--morado)">LIVE</span>
+                </div>
+                <div class="stat-val" id="st-pistas">0</div>
+                <div class="stat-label">TOTAL TRACKS</div>
+                <div class="stat-bar"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-ico" style="color:var(--cyan)">&#9678;</span>
+                    <span class="stat-tag" style="color:var(--cyan)">HD</span>
+                </div>
+                <div class="stat-val" id="st-albs">0</div>
+                <div class="stat-label">PLAYLISTS</div>
+                <div class="stat-bar"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-ico" style="color:var(--verde)">&#10003;</span>
+                    <span class="stat-tag" style="color:var(--verde)" id="st-pct"></span>
+                </div>
+                <div class="stat-val" id="st-tam">0<span>B</span></div>
+                <div class="stat-label">STORAGE SPACE</div>
+                <div class="stat-bar"></div>
+            </div>
+        </div>
+        <div class="seccion">
+            <div class="sec-head">
+                <span class="sec-tit">Recently Added</span>
+                <span class="sec-esp"></span>
+                <div class="filtros-bib" id="filtros-bib">
+                    <button class="filtro-pill activo" data-filtro="todo">Todo</button>
+                    <button class="filtro-pill" data-filtro="titulo">Titulo</button>
+                    <button class="filtro-pill" data-filtro="artista">Artista</button>
+                    <button class="filtro-pill" data-filtro="album">Album</button>
+                </div>
+                <input type="text" class="buscar" id="inp-buscar-bib" placeholder="&#128269;  Buscar...">
+            </div>
+            <div class="tabla-wrap" id="tabla-bib-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>TITLE</th><th>ARTIST</th><th>ALBUM</th><th>DURATION</th></tr></thead>
+                    <tbody id="cuerpo-bib"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="bib-pie">
+            <span class="bib-pie-txt" id="lbl-carpetas">Cargando...</span>
+            <button class="btn btn-pri" onclick="agregarCarpeta()">+ AGREGAR CARPETA</button>
+            <button class="btn btn-sec" onclick="mostrarCarpetas()">CARPETAS</button>
+        </div>
+    </section>
+
+    <section id="pag-repro" class="pag">
+        <div class="repro-estado">
+            <div class="repro-st" id="repro-st">STATUS</div>
+            <div class="repro-st-txt" id="repro-st-txt">WAITING</div>
+        </div>
+        <div class="vinilo-wrap">
+            <div class="vinilo-brillo"></div>
+            <div class="vinilo" id="el-vinilo">
+                <div class="vinilo-sup"></div>
+                <div class="vinilo-centro">
+                    <img id="vinilo-img" src="" alt="">
+                    <div class="vinilo-def">VIBE</div>
+                </div>
+                <div class="vinilo-eje"></div>
+            </div>
+        </div>
+        <div class="repro-info">
+            <div class="repro-nom" id="repro-nom">VIBE PULSE</div>
+            <div class="repro-art" id="repro-art">Tu musica favorita</div>
+            <div class="repro-sig" id="repro-sig"></div>
+        </div>
+    </section>
+
+    <section id="pag-listas" class="pag">
+        <div class="pl-lateral">
+            <div class="pl-pre">YOUR LIBRARY</div>
+            <div class="pl-tit">Playlists</div>
+            <div class="pl-lista" id="pl-lista"></div>
+            <button class="pl-nuevo" onclick="crearLista()">+ Nueva Lista</button>
+        </div>
+        <div class="pl-cont">
+            <div class="pl-hero" id="pl-hero">
+                <img class="pl-hero-bg" id="pl-hero-bg" src="" style="display:none">
+                <div class="pl-hero-over"></div>
+                <div class="pl-hero-cont">
+                    <div class="hero-tag" id="hero-tag">&#9679; CURATED COLLECTION</div>
+                    <div class="hero-nom" id="hero-nom">FAVORITOS</div>
+                    <div class="hero-desc" id="hero-desc">Tus pistas imprescindibles.</div>
+                    <div class="hero-btns">
+                        <button class="btn btn-pri" onclick="tocarListaAzar()">&#8652; ALEATORIO</button>
+                        <button class="btn btn-sec" onclick="ponerBanner()">&#128247; IMAGEN</button>
+                        <button class="btn btn-sec" onclick="borrarListaActual()">ELIMINAR PLAYLIST</button>
+                    </div>
+                </div>
+            </div>
+            <input type="text" class="buscar" id="inp-buscar-pl" placeholder="&#128269;  Filtrar en esta lista...">
+            <div class="pl-tabla" id="pl-tabla-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>TITULO</th><th>ALBUM</th><th>DURACION</th></tr></thead>
+                    <tbody id="cuerpo-pl"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <footer id="barra">
+        <div class="seek-row">
+            <div class="seek-wrap" id="seek-bar" onmousedown="barraIni(event)">
+                <div class="seek-pista">
+                    <div class="seek-lleno" id="seek-lleno"></div>
+                </div>
+                <div class="seek-punto" id="seek-punto"></div>
+            </div>
+        </div>
+        <div class="barra-main">
+            <div class="barra-izq">
+                <div class="barra-art" id="barra-art">
+                    <img id="barra-art-img" src="">
+                    <span class="ico-art">&#9835;</span>
+                </div>
+                <div class="barra-txt">
+                    <div class="barra-nom" id="barra-nom">--</div>
+                    <div class="barra-artista" id="barra-artista">--</div>
+                </div>
+                <button class="barra-fav" id="barra-fav" onclick="toggleFav()">&#9825;</button>
+            </div>
+            <div class="barra-centro">
+                <div class="controles">
+                    <button class="ctrl" id="btn-mezcla" onclick="toggleMezcla()" title="Aleatorio">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                    </button>
+                    <button class="ctrl" onclick="anterior()" title="Anterior">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="5" width="3" height="14" rx="1"/><polygon points="21 5 10 12 21 19"/></svg>
+                    </button>
+                    <button class="btn-play" id="btn-play" onclick="toggleTocar()" title="Reproducir">
+                        <svg id="ico-play" viewBox="0 0 24 24"><polygon points="7,4 20,12 7,20"/></svg>
+                        <svg id="ico-pausa" viewBox="0 0 24 24" style="display:none"><rect x="5" y="3" width="4" height="18" rx="1"/><rect x="15" y="3" width="4" height="18" rx="1"/></svg>
+                    </button>
+                    <button class="ctrl" onclick="siguiente()" title="Siguiente">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="3 5 14 12 3 19"/><rect x="18" y="5" width="3" height="14" rx="1"/></svg>
+                    </button>
+                    <button class="ctrl" id="btn-repite" onclick="toggleRepite()" title="Repetir">
+                        <svg id="ico-rep-no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                        <svg id="ico-rep-todas" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                        <svg id="ico-rep-una" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="15" font-size="8" font-family="sans-serif" font-weight="bold" fill="currentColor" stroke="none" text-anchor="middle">1</text></svg>
+                    </button>
+                </div>
+                <div class="tiempo-row">
+                    <span class="tiempo" id="t-actual">0:00</span>
+                    <span class="sec-esp"></span>
+                    <span class="tiempo" id="t-total">0:00</span>
+                </div>
+            </div>
+            <div class="barra-der">
+                <button class="vol-ico" id="btn-vol" onclick="toggleMute()">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <div class="vol-wrap" id="vol-bar" onmousedown="volIni(event)">
+                    <div class="vol-pista">
+                        <div class="vol-lleno" id="vol-lleno" style="width:70%"></div>
+                    </div>
+                    <div class="vol-punto" id="vol-punto" style="left:70%"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div class="ctx" id="ctx-menu"></div>
+
+<div class="modal-fondo" id="modal-fondo">
+    <div class="modal" id="modal-caja">
+        <h3 id="modal-tit">Nueva Playlist</h3>
+        <input type="text" id="modal-inp" placeholder="Nombre de la lista...">
+        <div class="modal-btns">
+            <button class="btn btn-sec" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn btn-pri" id="modal-ok" onclick="confirmarModal()">Crear</button>
+        </div>
+    </div>
+</div>
+
+<div class="confirmar-fondo" id="confirmar-fondo">
+    <div class="confirmar-caja">
+        <h3 id="confirmar-msg">Confirmar accion</h3>
+        <div class="confirmar-btns">
+            <button class="btn btn-sec" onclick="cerrarConfirmar(false)">Cancelar</button>
+            <button class="btn btn-pri" onclick="cerrarConfirmar(true)">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<script>
+let api;
+let biblio = [];
+let listas = {};
+let listaActual = 'Favoritos';
+let est = {};
+let cacPorta = {};
+let barraArr = false;
+let volArra = false;
+let reloj = null;
+let modoRep = 0;
+let silenciado = false;
+let volAntes = 70;
+let ultArch = '';
+let modalCb = null;
+let avisoTimer = null;
+let confirmarCb = null;
+
+async function iniciar() {
+    api = window.pywebview.api;
+    try { await cargarBiblio(); } catch(e) { document.getElementById('lbl-carpetas').textContent = 'Error Biblio: ' + (e.message || String(e)); }
+    try { await cargarListas(); } catch(e) {}
+    iniciarReloj();
+    prepBusqueda();
+    document.addEventListener('click', () => ocultarCtx());
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+let apiChequeos = 0;
+function esperarApi() {
+    if (window.pywebview && window.pywebview.api) {
+        iniciar();
+    } else {
+        if (apiChequeos < 100) {
+            apiChequeos++;
+            setTimeout(esperarApi, 100);
+        } else {
+            document.getElementById('lbl-carpetas').textContent = 'Error: API no encontrada';
+        }
+    }
+}
+
+esperarApi();
+
+function irTab(tab) {
+    document.querySelectorAll('.pag').forEach(p => p.classList.remove('activo'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('activo'));
+    document.getElementById('pag-' + tab).classList.add('activo');
+    document.querySelector('.nav-tab[data-tab="' + tab + '"]').classList.add('activo');
+}
+
+async function cargarBiblio() {
+    biblio = await api.get_library();
+    pintarBiblio(biblio);
+    actStats();
+}
+
+function pintarBiblio(pistas) {
+    const tb = document.getElementById('cuerpo-bib');
+    tb.innerHTML = '';
+    if (!pistas.length) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--t4)">Agrega una carpeta para cargar tu musica</td></tr>';
+        return;
+    }
+    pistas.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.dataset.fp = p.filepath;
+        if (est.archivo && p.filepath === est.archivo) tr.classList.add('tocando');
+        tr.ondblclick = () => tocarCancion(p.filepath);
+        tr.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); ctxCancion(e, p); };
+        tr.innerHTML =
+            '<td>' + String(i+1).padStart(2,'0') + '</td>' +
+            '<td><div class="celda-canc">' +
+                '<div class="mini-art" id="art-' + i + '"><span class="ico-nota">&#9835;</span></div>' +
+                '<div class="info-canc"><div class="nom">' + esc(p.title) + '</div></div>' +
+            '</div></td>' +
+            '<td style="color:var(--t2)">' + esc(p.artist) + '</td>' +
+            '<td style="color:var(--t2)">' + esc(p.album) + '</td>' +
+            '<td>' + fmtTiempo(p.duration) + '</td>';
+        tb.appendChild(tr);
+        cargarMini(p.filepath, i);
+    });
+}
+
+async function cargarMini(fp, idx) {
+    if (cacPorta[fp] !== undefined) { ponerMini(idx, cacPorta[fp]); return; }
+    const b = await api.get_cover_b64(fp);
+    cacPorta[fp] = b;
+    ponerMini(idx, b);
+}
+
+function ponerMini(idx, b) {
+    const el = document.getElementById('art-' + idx);
+    if (!el) return;
+    if (b) el.innerHTML = '<img src="data:image/jpeg;base64,' + b + '">';
+}
+
+async function actStats() {
+    const s = await api.get_stats();
+    document.getElementById('st-pistas').textContent = s.total_tracks.toLocaleString();
+    document.getElementById('st-albs').textContent = s.total_albums;
+    document.getElementById('st-tam').innerHTML = fmtTam(s.total_size);
+    const txt = s.carpetas && s.carpetas.length ? s.carpetas.map(c => c.split('\\').pop()).join(', ') : 'Sin carpetas';
+    document.getElementById('lbl-carpetas').textContent = 'Fuente: ' + txt;
+}
+
+let filtroActivo = 'todo';
+function buscarBib() {
+    const q = document.getElementById('inp-buscar-bib').value.toLowerCase();
+    if (!q) { pintarBiblio(biblio); return; }
+    const filtro = biblio.filter(p => {
+        if (filtroActivo === 'titulo') return p.title.toLowerCase().includes(q);
+        if (filtroActivo === 'artista') return p.artist.toLowerCase().includes(q);
+        if (filtroActivo === 'album') return p.album.toLowerCase().includes(q);
+        return p.title.toLowerCase().includes(q) || p.artist.toLowerCase().includes(q) || p.album.toLowerCase().includes(q);
+    });
+    pintarBiblio(filtro);
+}
+
+function prepBusqueda() {
+    document.getElementById('inp-buscar-bib').addEventListener('input', buscarBib);
+    document.querySelectorAll('.filtro-pill').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.filtro-pill').forEach(b => b.classList.remove('activo'));
+            e.target.classList.add('activo');
+            filtroActivo = e.target.dataset.filtro;
+            buscarBib();
+        });
+    });
+    document.getElementById('inp-buscar-pl').addEventListener('input', (e) => {
+        filtrarTablaPl(e.target.value);
+    });
+}
+
+function filtrarTablaPl(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#cuerpo-pl tr').forEach(r => {
+        r.style.display = (!q || r.textContent.toLowerCase().includes(q)) ? '' : 'none';
+    });
+}
+
+
+async function tocarCancion(fp) {
+    const idx = biblio.findIndex(p => p.filepath === fp);
+    if (idx === -1) return;
+    await api.play_queue(biblio.map(p => p.filepath), idx, est.mezcla || false);
+    ultArch = '';
+    irTab('repro');
+}
+
+async function tocarDeLista(fp) {
+    const cancs = listas[listaActual] ? listas[listaActual].songs || [] : [];
+    const idx = cancs.indexOf(fp);
+    if (idx === -1) return;
+    await api.play_queue(cancs, idx, est.mezcla || false);
+    ultArch = '';
+    irTab('repro');
+}
+
+async function tocarListaAzar() {
+    const cancs = listas[listaActual] ? listas[listaActual].songs || [] : [];
+    if (!cancs.length) { mostrarAviso('La lista esta vacia'); return; }
+    await api.play_queue(cancs, 0, true);
+    ultArch = '';
+    irTab('repro');
+}
+
+async function toggleTocar() {
+    if (!est.archivo && biblio.length > 0) {
+        await api.play_queue(biblio.map(p => p.filepath), 0, est.mezcla || false);
+        ultArch = '';
+        irTab('repro');
+        return;
+    }
+    await api.toggle_playback();
+}
+
+async function siguiente() {
+    await api.next_track();
+    ultArch = '';
+}
+
+async function anterior() {
+    await api.prev_track();
+    ultArch = '';
+}
+
+async function toggleMezcla() {
+    est.mezcla = !est.mezcla;
+    await api.set_shuffle(est.mezcla);
+    document.getElementById('btn-mezcla').classList.toggle('activo', est.mezcla);
+}
+
+async function toggleRepite() {
+    modoRep = (modoRep + 1) % 3;
+    await api.set_repeat(modoRep);
+    actRepUI();
+}
+
+function actRepUI() {
+    const b = document.getElementById('btn-repite');
+    const ino = document.getElementById('ico-rep-no');
+    const itodas = document.getElementById('ico-rep-todas');
+    const iuna = document.getElementById('ico-rep-una');
+    b.classList.remove('rep-activo');
+    ino.style.display = 'none';
+    itodas.style.display = 'none';
+    iuna.style.display = 'none';
+
+    if (modoRep === 1) {
+        b.classList.add('rep-activo');
+        itodas.style.display = 'block';
+        b.title = 'Repetir: Todo';
+    } else if (modoRep === 2) {
+        b.classList.add('rep-activo');
+        iuna.style.display = 'block';
+        b.title = 'Repetir: Una';
+    } else {
+        ino.style.display = 'block';
+        b.title = 'Repetir: No';
+    }
+}
+
+function iniciarReloj() {
+    reloj = setInterval(async () => {
+        try {
+            const s = await api.get_state();
+            actUI(s);
+            est = s;
+        } catch(e) {}
+    }, 400);
+}
+
+async function actUI(s) {
+    document.getElementById('ico-play').style.display = s.tocando ? 'none' : 'block';
+    document.getElementById('ico-pausa').style.display = s.tocando ? 'block' : 'none';
+    document.getElementById('el-vinilo').classList.toggle('girando', s.tocando);
+
+    const stEl = document.getElementById('repro-st');
+    const stTxt = document.getElementById('repro-st-txt');
+    if (s.tocando) { stEl.className = 'repro-st'; stEl.textContent = 'STATUS'; stTxt.textContent = 'SYNCHRONIZED'; }
+    else if (s.pausado) { stEl.className = 'repro-st pausado'; stEl.textContent = 'STATUS'; stTxt.textContent = 'PAUSED'; }
+    else { stEl.className = 'repro-st pausado'; stEl.textContent = 'STATUS'; stTxt.textContent = 'WAITING'; }
+
+    if (!barraArr) {
+        const pct = s.dur_ms > 0 ? (s.pos_ms / s.dur_ms * 100) : 0;
+        document.getElementById('seek-lleno').style.width = pct + '%';
+        document.getElementById('seek-punto').style.left = pct + '%';
+    }
+    document.getElementById('t-actual').textContent = fmtTiempo(Math.floor(s.pos_ms / 1000));
+    document.getElementById('t-total').textContent = fmtTiempo(Math.floor(s.dur_ms / 1000));
+
+    if (!volArra) {
+        const vp = s.vol || 0;
+        document.getElementById('vol-lleno').style.width = vp + '%';
+        document.getElementById('vol-punto').style.left = vp + '%';
+    }
+
+    if (s.archivo && s.archivo !== ultArch) {
+        ultArch = s.archivo;
+        const m = await api.get_song_meta(s.archivo);
+        if (m) {
+            document.getElementById('repro-nom').textContent = m.title.toUpperCase();
+            document.getElementById('repro-art').textContent = m.artist.toUpperCase();
+            document.getElementById('barra-nom').textContent = m.title;
+            document.getElementById('barra-artista').textContent = m.artist.toUpperCase();
+            let b = cacPorta[s.archivo];
+            if (b === undefined) { b = await api.get_cover_b64(s.archivo); cacPorta[s.archivo] = b; }
+            actArts(b);
+            actFav(s.archivo);
+            marcarFilaActual(s.archivo);
+        }
+    }
+
+    if (!s.archivo && ultArch) {
+        ultArch = '';
+        document.getElementById('repro-nom').textContent = 'VIBE PULSE';
+        document.getElementById('repro-art').textContent = 'Tu musica favorita';
+        document.getElementById('barra-nom').textContent = '--';
+        document.getElementById('barra-artista').textContent = '--';
+        actArts(null);
+    }
+
+    if (s.hay_sig) {
+        const tSig = await api.get_next_song_title();
+        if (tSig) document.getElementById('repro-sig').textContent = 'Siguiente: ' + tSig;
+        else document.getElementById('repro-sig').textContent = '';
+    } else { document.getElementById('repro-sig').textContent = ''; }
+
+    document.getElementById('btn-mezcla').classList.toggle('activo', s.mezcla);
+    if (s.repite !== modoRep) {
+        modoRep = s.repite;
+        actRepUI();
+    }
+}
+
+function marcarFilaActual(fp) {
+    document.querySelectorAll('#cuerpo-bib tr').forEach(tr => {
+        tr.classList.toggle('tocando', tr.dataset.fp === fp);
+    });
+    document.querySelectorAll('#cuerpo-pl tr').forEach(tr => {
+        tr.classList.toggle('tocando', tr.dataset.fp === fp);
+    });
+}
+
+function actArts(b) {
+    const vi = document.getElementById('vinilo-img');
+    const bi = document.getElementById('barra-art-img');
+    if (b) {
+        const src = 'data:image/jpeg;base64,' + b;
+        vi.src = src; vi.classList.add('visible');
+        bi.src = src; bi.classList.add('visible');
+    } else {
+        vi.classList.remove('visible'); vi.src = '';
+        bi.classList.remove('visible'); bi.src = '';
+    }
+}
+
+function barraIni(e) {
+    barraArr = true;
+    barraMov(e);
+    const mv = (ev) => barraMov(ev);
+    const up = () => {
+        barraFin();
+        barraArr = false;
+        document.removeEventListener('mousemove', mv);
+        document.removeEventListener('mouseup', up);
+    };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+}
+
+let pctPend = 0;
+function barraMov(e) {
+    const bar = document.getElementById('seek-bar');
+    const rect = bar.getBoundingClientRect();
+    let pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    pctPend = pct;
+    document.getElementById('seek-lleno').style.width = (pct * 100) + '%';
+    document.getElementById('seek-punto').style.left = (pct * 100) + '%';
+}
+
+function barraFin() {
+    const durMs = est.dur_ms || 0;
+    if (durMs > 0) {
+        api.seek(pctPend * durMs);
+    }
+}
+
+function volIni(e) {
+    volArra = true;
+    volMov(e);
+    const mv = (ev) => volMov(ev);
+    const up = () => { volArra = false; document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
+}
+function volMov(e) {
+    const bar = document.getElementById('vol-bar');
+    const rect = bar.getBoundingClientRect();
+    let pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    document.getElementById('vol-lleno').style.width = (pct * 100) + '%';
+    document.getElementById('vol-punto').style.left = (pct * 100) + '%';
+    api.set_volume(Math.round(pct * 100));
+    silenciado = (pct === 0);
+}
+
+function toggleMute() {
+    if (!silenciado) {
+        volAntes = est.vol || 70;
+        api.set_volume(0);
+        document.getElementById('vol-lleno').style.width = '0%';
+        document.getElementById('vol-punto').style.left = '0%';
+        silenciado = true;
+    } else {
+        api.set_volume(volAntes);
+        document.getElementById('vol-lleno').style.width = volAntes + '%';
+        document.getElementById('vol-punto').style.left = volAntes + '%';
+        silenciado = false;
+    }
+}
+
+async function toggleFav() {
+    if (!est.archivo) return;
+    const esFav = await api.toggle_favorite(est.archivo);
+    actFav(est.archivo);
+    mostrarAviso(esFav ? 'Agregado a Favoritos' : 'Eliminado de Favoritos');
+    await cargarListas();
+}
+
+async function actFav(fp) {
+    const esFav = await api.is_favorite(fp);
+    const el = document.getElementById('barra-fav');
+    el.innerHTML = esFav ? '&#10084;' : '&#9825;';
+    el.classList.toggle('fav', esFav);
+}
+
+async function cargarListas() {
+    listas = await api.get_playlists();
+    pintarLateral();
+    elegirLista(listaActual);
+}
+
+function pintarLateral() {
+    const cont = document.getElementById('pl-lista');
+    cont.innerHTML = '';
+    Object.keys(listas).forEach(nom => {
+        const div = document.createElement('div');
+        div.className = 'pl-elem' + (nom === listaActual ? ' activo' : '');
+        div.onclick = () => elegirLista(nom);
+        div.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); ctxLista(e, nom); };
+        const ico = nom === 'Favoritos' ? '&#10084;' : '&#9835;';
+        div.innerHTML = '<span class="pl-elem-ico">' + ico + '</span>' + esc(nom);
+        cont.appendChild(div);
+    });
+}
+
+let cacFondo = {};
+async function elegirLista(nom) {
+    listaActual = nom;
+    document.querySelectorAll('.pl-elem').forEach(el => {
+        const tiene = el.textContent.trim() === nom || el.textContent.includes(nom);
+        el.classList.toggle('activo', tiene);
+    });
+    const pl = listas[nom] || { songs: [], banner: null };
+    document.getElementById('hero-nom').textContent = nom.toUpperCase();
+    document.getElementById('hero-desc').textContent = pl.songs.length + ' pista' + (pl.songs.length !== 1 ? 's' : '') + ' en esta coleccion.';
+    const bgEl = document.getElementById('pl-hero-bg');
+    if (pl.banner) {
+        if (cacFondo[pl.banner]) {
+            bgEl.src = cacFondo[pl.banner]; bgEl.style.display = 'block';
+        } else {
+            const b = await api.get_file_b64(pl.banner);
+            if (b) { cacFondo[pl.banner] = b; bgEl.src = b; bgEl.style.display = 'block'; }
+            else { bgEl.style.display = 'none'; }
+        }
+    } else { bgEl.style.display = 'none'; }
+    pintarTablaLista(pl.songs);
+}
+
+let cacDatos = {};
+async function pintarTablaLista(rutas) {
+    const tb = document.getElementById('cuerpo-pl');
+    tb.innerHTML = '';
+    if (!rutas.length) { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--t4)">Lista vacia</td></tr>'; return; }
+    const metas = [];
+    for (let i = 0; i < rutas.length; i++) {
+        const fp = rutas[i];
+        if (cacDatos[fp]) { metas.push(cacDatos[fp]); }
+        else {
+            const m = await api.get_song_meta(fp);
+            if (m) cacDatos[fp] = m;
+            metas.push(m);
+        }
+    }
+    for (let i = 0; i < rutas.length; i++) {
+        const fp = rutas[i];
+        const m = metas[i];
+        if (!m) continue;
+        const tr = document.createElement('tr');
+        tr.dataset.fp = fp;
+        if (est.archivo && fp === est.archivo) tr.classList.add('tocando');
+        tr.ondblclick = () => tocarDeLista(fp);
+        tr.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); ctxPlCancion(e, fp); };
+        tr.innerHTML =
+            '<td>' + String(i+1).padStart(2,'0') + '</td>' +
+            '<td><div class="celda-canc">' +
+                '<div class="mini-art" id="plart-' + i + '"><span class="ico-nota">&#9835;</span></div>' +
+                '<div class="info-canc"><div class="nom">' + esc(m.title) + '</div><div class="sub">' + esc(m.artist) + '</div></div>' +
+            '</div></td>' +
+            '<td style="color:var(--t2)">' + esc(m.album) + '</td>' +
+            '<td>' + fmtTiempo(m.duration) + '</td>';
+        tb.appendChild(tr);
+        cargarPlMini(fp, i);
+    }
+}
+
+async function cargarPlMini(fp, idx) {
+    let b = cacPorta[fp];
+    if (b === undefined) { b = await api.get_cover_b64(fp); cacPorta[fp] = b; }
+    const el = document.getElementById('plart-' + idx);
+    if (el && b) el.innerHTML = '<img src="data:image/jpeg;base64,' + b + '">';
+}
+
+async function crearLista() {
+    abrirModal('Nueva Playlist', 'Nombre de la lista...', async (nom) => {
+        if (nom) { await api.create_playlist(nom); await cargarListas(); await actStats(); mostrarAviso('Playlist creada: ' + nom); }
+    });
+}
+
+async function borrarListaActual() {
+    if (listaActual === 'Favoritos') {
+        abrirConfirmar('Vaciar la lista de Favoritos?', async (ok) => {
+            if (ok) { await api.clear_playlist('Favoritos'); await cargarListas(); mostrarAviso('Favoritos vaciados'); }
+        });
+    } else {
+        abrirConfirmar('Eliminar la playlist "' + listaActual + '"?', async (ok) => {
+            if (ok) {
+                await api.delete_playlist(listaActual);
+                listaActual = 'Favoritos';
+                await cargarListas();
+                await actStats();
+                mostrarAviso('Playlist eliminada');
+            }
+        });
+    }
+}
+
+async function ponerBanner() {
+    const ok = await api.set_playlist_banner(listaActual);
+    if (ok) {
+        delete cacFondo[ok];
+        await cargarListas();
+        mostrarAviso('Imagen actualizada');
+    }
+}
+
+function ctxCancion(e, canc) {
+    const elems = [
+        { label: '&#9654; Reproducir', accion: () => tocarCancion(canc.filepath) },
+        { sep: true },
+        { label: '&#10084; Favorito', accion: async () => { await api.toggle_favorite(canc.filepath); await cargarListas(); mostrarAviso('Favoritos actualizado'); }},
+    ];
+    const noms = Object.keys(listas).filter(n => n !== 'Favoritos');
+    if (noms.length) {
+        elems.push({ sep: true });
+        noms.forEach(n => {
+            elems.push({ label: '&#9835; ' + esc(n), accion: async () => {
+                const res = await api.add_to_playlist(n, canc.filepath);
+                if (res) {
+                    await cargarListas();
+                    mostrarAviso('Agregado a ' + n);
+                } else {
+                    mostrarAviso('Ya esta en ' + n);
+                }
+            }});
+        });
+    }
+    elems.push({ sep: true });
+    elems.push({ label: '&#128465; Eliminar archivo', accion: () => {
+        abrirConfirmar('Eliminar "' + canc.title + '"?', async (ok) => {
+            if (ok) { await api.delete_file(canc.filepath); await cargarBiblio(); mostrarAviso('Archivo eliminado'); }
+        });
+    }});
+    mostrarCtx(e.clientX, e.clientY, elems);
+}
+
+function ctxPlCancion(e, fp) {
+    mostrarCtx(e.clientX, e.clientY, [
+        { label: '&#9654; Reproducir', accion: () => tocarDeLista(fp) },
+        { sep: true },
+        { label: '&#10060; Quitar de esta lista', accion: async () => { await api.remove_from_playlist(listaActual, fp); await cargarListas(); mostrarAviso('Cancion removida'); }},
+    ]);
+}
+
+function ctxLista(e, nom) {
+    if (nom === 'Favoritos') return;
+    mostrarCtx(e.clientX, e.clientY, [
+        { label: '&#128465; Eliminar playlist', accion: () => {
+            abrirConfirmar('Eliminar la playlist "' + nom + '"?', async (ok) => {
+                if (ok) {
+                    await api.delete_playlist(nom);
+                    if (listaActual === nom) listaActual = 'Favoritos';
+                    await cargarListas();
+                    await actStats();
+                    mostrarAviso('Playlist eliminada');
+                }
+            });
+        }},
+    ]);
+}
+
+function mostrarCtx(x, y, elems) {
+    const menu = document.getElementById('ctx-menu');
+    menu.innerHTML = '';
+    elems.forEach(it => {
+        if (it.sep) {
+            const sep = document.createElement('div');
+            sep.className = 'ctx-sep';
+            menu.appendChild(sep);
+        } else {
+            const div = document.createElement('div');
+            div.className = 'ctx-elem';
+            div.innerHTML = it.label;
+            div.onclick = (e) => { e.stopPropagation(); ocultarCtx(); it.accion(); };
+            menu.appendChild(div);
+        }
+    });
+    menu.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+    menu.style.top = Math.min(y, window.innerHeight - menu.children.length * 40 - 20) + 'px';
+    menu.classList.add('visible');
+}
+function ocultarCtx() { document.getElementById('ctx-menu').classList.remove('visible'); }
+
+function abrirModal(tit, ph, cb) {
+    document.getElementById('modal-tit').textContent = tit;
+    const inp = document.getElementById('modal-inp');
+    inp.placeholder = ph; inp.value = '';
+    modalCb = cb;
+    document.getElementById('modal-fondo').classList.add('visible');
+    setTimeout(() => inp.focus(), 100);
+}
+function cerrarModal() { document.getElementById('modal-fondo').classList.remove('visible'); modalCb = null; }
+function confirmarModal() { const v = document.getElementById('modal-inp').value.trim(); if (modalCb) modalCb(v); cerrarModal(); }
+
+document.getElementById('modal-inp').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmarModal();
+    if (e.key === 'Escape') cerrarModal();
+});
+
+function abrirConfirmar(msg, cb) {
+    document.getElementById('confirmar-msg').textContent = msg;
+    confirmarCb = cb;
+    document.getElementById('confirmar-fondo').classList.add('visible');
+}
+
+function cerrarConfirmar(res) {
+    document.getElementById('confirmar-fondo').classList.remove('visible');
+    if (confirmarCb) confirmarCb(res);
+    confirmarCb = null;
+}
+
+function mostrarAviso(msg) {
+    const el = document.getElementById('aviso');
+    el.textContent = msg;
+    el.classList.add('visible');
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(() => el.classList.remove('visible'), 2500);
+}
+
+function fmtTiempo(segs) {
+    if (!segs || segs < 0) return '0:00';
+    const m = Math.floor(segs / 60);
+    const s = Math.floor(segs % 60);
+    return m + ':' + String(s).padStart(2, '0');
+}
+
+function fmtTam(bytes) {
+    if (bytes < 1024) return bytes + '<span>B</span>';
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + '<span>KB</span>';
+    if (bytes < 1024*1024*1024) return (bytes/(1024*1024)).toFixed(1) + '<span>MB</span>';
+    return (bytes/(1024*1024*1024)).toFixed(1) + '<span>GB</span>';
+}
+
+function esc(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function agregarCarpeta() {
+    const res = await api.add_folder();
+    if (res) {
+        await cargarBiblio();
+        await actStats();
+        mostrarAviso('Carpeta agregada');
+    }
+}
+
+async function quitarCarpeta(carp) {
+    abrirConfirmar('Quitar carpeta "' + carp.split('\\').pop() + '"?', async (ok) => {
+        if (ok) {
+            await api.remove_folder(carp);
+            await cargarBiblio();
+            await actStats();
+            mostrarAviso('Carpeta eliminada');
+        }
+    });
+}
+
+async function mostrarCarpetas() {
+    const carps = await api.get_folders();
+    const fondo = document.getElementById('confirmar-fondo');
+    const caja = fondo.querySelector('.confirmar-caja');
+    let html = '<h3>Carpetas de musica</h3><div class="carpetas-modal">';
+    if (!carps.length) {
+        html += '<div style="color:var(--t4);padding:16px;text-align:center">Sin carpetas</div>';
+    } else {
+        carps.forEach(c => {
+            html += '<div class="carpeta-item"><span>' + esc(c) + '</span>' +
+                '<button class="carpeta-del" onclick="cerrarConfirmar(false);quitarCarpeta(\'' + c.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">&#10060;</button></div>';
+        });
+    }
+    html += '</div><div class="confirmar-btns"><button class="btn btn-pri" onclick="cerrarConfirmar(false);agregarCarpeta()">+ AGREGAR</button>' +
+        '<button class="btn btn-sec" onclick="cerrarConfirmar(false)">CERRAR</button></div>';
+    caja.innerHTML = html;
+    fondo.classList.add('visible');
+}
+</script>
+</body>
+</html>
+

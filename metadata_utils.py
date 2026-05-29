@@ -1,114 +1,117 @@
 import os
-from mutagen import File as ArchivoMutagen
+from mutagen import File as ArchivoMut
 
-FORMATOS_SOPORTADOS = {'.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.wma', '.opus'}
+FORMATOS = {'.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.wma', '.opus'}
 
-def es_archivo_audio(ruta_archivo):
-    ext = os.path.splitext(ruta_archivo)[1].lower()
-    return ext in FORMATOS_SOPORTADOS
 
-def obtener_metadatos(ruta_archivo):
-    nombre_base = os.path.splitext(os.path.basename(ruta_archivo))[0]
-    metadatos = {
-        'title': nombre_base,
+def es_audio(ruta):
+    ext = os.path.splitext(ruta)[1].lower()
+    return ext in FORMATOS
+
+
+def leer_meta(ruta):
+    nombre = os.path.splitext(os.path.basename(ruta))[0]
+    datos = {
+        'title': nombre,
         'artist': 'Artista Desconocido',
-        'album': 'Álbum Desconocido',
+        'album': 'Album Desconocido',
         'duration': 0,
         'cover_art': None,
-        'filepath': ruta_archivo,
-        'format': os.path.splitext(ruta_archivo)[1].upper().replace('.', ''),
-        'size': os.path.getsize(ruta_archivo) if os.path.exists(ruta_archivo) else 0,
+        'filepath': ruta,
+        'format': os.path.splitext(ruta)[1].upper().replace('.', ''),
+        'size': os.path.getsize(ruta) if os.path.exists(ruta) else 0,
     }
-
     try:
-        audio = ArchivoMutagen(ruta_archivo)
+        audio = ArchivoMut(ruta)
         if audio is None:
-            return metadatos
-
+            return datos
         if hasattr(audio.info, 'length'):
-            metadatos['duration'] = int(audio.info.length)
-
-        ext = os.path.splitext(ruta_archivo)[1].lower()
-
+            datos['duration'] = int(audio.info.length)
+        ext = os.path.splitext(ruta)[1].lower()
         if ext == '.mp3':
-            _extraer_id3(audio, metadatos)
+            _leer_id3(audio, datos)
         elif ext == '.flac':
-            _extraer_flac(audio, metadatos)
+            _leer_flac(audio, datos)
         elif ext in ('.ogg', '.opus'):
-            _extraer_vorbis(audio, metadatos)
+            _leer_vorbis(audio, datos)
         elif ext in ('.m4a', '.aac'):
-            _extraer_mp4(audio, metadatos)
+            _leer_mp4(audio, datos)
         elif ext == '.wav':
-            _extraer_id3(audio, metadatos)
+            _leer_id3(audio, datos)
+    except:
+        pass
+    return datos
 
-    except Exception as e:
-        print(f"[metadata_utils] Error leyendo {ruta_archivo}: {e}")
 
-    return metadatos
-
-def _extraer_id3(audio, metadatos):
+def _leer_id3(audio, datos):
     if not hasattr(audio, 'tags') or audio.tags is None:
         return
-    tags = audio.tags
-    if 'TIT2' in tags:
-        metadatos['title'] = str(tags['TIT2'])
-    if 'TPE1' in tags:
-        metadatos['artist'] = str(tags['TPE1'])
-    if 'TALB' in tags:
-        metadatos['album'] = str(tags['TALB'])
-    for clave in tags:
-        if clave.startswith('APIC'):
-            metadatos['cover_art'] = tags[clave].data
+    t = audio.tags
+    if 'TIT2' in t:
+        datos['title'] = str(t['TIT2'])
+    if 'TPE1' in t:
+        datos['artist'] = str(t['TPE1'])
+    if 'TALB' in t:
+        datos['album'] = str(t['TALB'])
+    for k in t:
+        if k.startswith('APIC'):
+            datos['cover_art'] = t[k].data
             break
 
-def _extraer_flac(audio, metadatos):
+
+def _leer_flac(audio, datos):
     if 'title' in audio:
-        metadatos['title'] = audio['title'][0]
+        datos['title'] = audio['title'][0]
     if 'artist' in audio:
-        metadatos['artist'] = audio['artist'][0]
+        datos['artist'] = audio['artist'][0]
     if 'album' in audio:
-        metadatos['album'] = audio['album'][0]
+        datos['album'] = audio['album'][0]
     if audio.pictures:
-        metadatos['cover_art'] = audio.pictures[0].data
+        datos['cover_art'] = audio.pictures[0].data
 
-def _extraer_vorbis(audio, metadatos):
+
+def _leer_vorbis(audio, datos):
     if 'title' in audio:
-        metadatos['title'] = audio['title'][0]
+        datos['title'] = audio['title'][0]
     if 'artist' in audio:
-        metadatos['artist'] = audio['artist'][0]
+        datos['artist'] = audio['artist'][0]
     if 'album' in audio:
-        metadatos['album'] = audio['album'][0]
+        datos['album'] = audio['album'][0]
 
-def _extraer_mp4(audio, metadatos):
+
+def _leer_mp4(audio, datos):
     if '\xa9nam' in audio:
-        metadatos['title'] = audio['\xa9nam'][0]
+        datos['title'] = audio['\xa9nam'][0]
     if '\xa9ART' in audio:
-        metadatos['artist'] = audio['\xa9ART'][0]
+        datos['artist'] = audio['\xa9ART'][0]
     if '\xa9alb' in audio:
-        metadatos['album'] = audio['\xa9alb'][0]
+        datos['album'] = audio['\xa9alb'][0]
     if 'covr' in audio:
-        metadatos['cover_art'] = bytes(audio['covr'][0])
+        datos['cover_art'] = bytes(audio['covr'][0])
 
-def escanear_directorio(directorio):
-    canciones = []
-    for raiz, directorios, archivos in os.walk(directorio):
-        for f in sorted(archivos):
-            ruta_archivo = os.path.join(raiz, f)
-            if es_archivo_audio(ruta_archivo):
-                canciones.append(obtener_metadatos(ruta_archivo))
-    return canciones
 
-def formatear_duracion(segundos):
-    if segundos <= 0:
+def escanear(carpeta):
+    pistas = []
+    for raiz, dirs, archs in os.walk(carpeta):
+        for f in sorted(archs):
+            ruta = os.path.join(raiz, f)
+            if es_audio(ruta):
+                pistas.append(leer_meta(ruta))
+    return pistas
+
+
+def fmt_dur(segs):
+    if segs <= 0:
         return "0:00"
-    minutos = segundos // 60
-    segs = segundos % 60
-    return f"{minutos}:{segs:02d}"
+    m = segs // 60
+    s = segs % 60
+    return f"{m}:{s:02d}"
 
-def formatear_tamano(tamano_bytes):
-    if tamano_bytes < 1024:
-        return f"{tamano_bytes} B"
-    elif tamano_bytes < 1024 * 1024:
-        return f"{tamano_bytes / 1024:.1f} KB"
+
+def fmt_tam(b):
+    if b < 1024:
+        return f"{b} B"
+    elif b < 1024 * 1024:
+        return f"{b / 1024:.1f} KB"
     else:
-        return f"{tamano_bytes / (1024 * 1024):.1f} MB"
+        return f"{b / (1024 * 1024):.1f} MB"
